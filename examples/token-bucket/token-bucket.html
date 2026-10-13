@@ -822,17 +822,16 @@ const place = (t) => {
   if (t.alpha < 1) t.el.setAttribute("opacity", Math.max(0, t.alpha).toFixed(3));
 };
 
-// state
 let rate = DATA.RATE_AT;
 const supplyStack = Array.from({ length: SUPPLY_LEVELS }, (_, i) => make(SX, 0, PZ + TOKEN_H * i, "supply"));
 const stack = Array.from({ length: 5 }, (_, i) => make(0, 0, BZ + TOKEN_H * i, "stack"));
 let ready = make(CHUTE_END, 0, PZ, "chute");
-let kicked = null;      // a token on its way from the supply to the chute end
-const falling = [];     // tokens dropping into the tube
-const leaving = [];     // tokens pushed out by a request
-let phase = 0.25;       // clock: fraction of the way to the next token
-let sStroke = null;     // supply pusher stroke age
-let rStroke = null;     // request pusher stroke { age, token }
+let kicked = null;
+const falling = [];
+const leaving = [];
+let phase = 0.25;
+let sStroke = null;
+let rStroke = null;
 let flagUp = { x: 0, v: 0 }, flagAt = -9;
 let allowed = 0, rejected = 0, last = "";
 let clockT = 0;
@@ -849,7 +848,6 @@ const rTip = (age) => {
 const R_CYCLE = 0.4;
 
 function tick() {
-  // one token every 1/rate seconds, if there is room for it
   const room = stack.length + falling.length < CAPACITY;
   if (room && ready) {
     ready.age = 0; ready.vz = 0;
@@ -879,9 +877,8 @@ function step(dt, calm) {
   const period = 1 / RATES[rate];
   phase += dt / period;
   while (phase >= 1) { phase -= 1; tick(); }
-  const a = calm ? 10 : dt;   // animation time: instant under reduced motion
+  const a = calm ? 10 : dt;
 
-  // supply pusher and the kicked token
   if (sStroke !== null) {
     sStroke += a;
     if (sStroke > 0.4) sStroke = null;
@@ -896,11 +893,9 @@ function step(dt, calm) {
     place(kicked);
     if (u >= 1) { ready = kicked; kicked = null; }
   }
-  // the supply stack drops once the blade is back out from under it
   const sBlocked = sStroke !== null && sOut > 1;
   supplyStack.forEach((t, i) => fall(t, PZ + TOKEN_H * (i + (sBlocked ? 1 : 0)), a));
 
-  // tokens dropping into the tube
   for (let i = falling.length - 1; i >= 0; i--) {
     const t = falling[i];
     t.age += a;
@@ -917,7 +912,6 @@ function step(dt, calm) {
     place(t);
   }
 
-  // the request pusher, and what it pushes
   let rOut = 0;
   if (rStroke) {
     rStroke.age += a;
@@ -941,10 +935,8 @@ function step(dt, calm) {
     place(t);
     if (t.alpha <= 0) { t.el.remove(); leaving.splice(i, 1); }
   }
-  // the stack rests on the blade until it pulls back
   stack.forEach((t, i) => fall(t, BZ + TOKEN_H * i + (rBlocked() ? TOKEN_H : 0), a));
 
-  // the flag
   const up = clockT - flagAt < 0.9 ? 1 : 0;
   if (calm) { flagUp.x = up; flagUp.v = 0; }
   else for (let s = 0; s < 4; s++) { flagUp.v += ((up - flagUp.x) * 260 - flagUp.v * 22) * dt / 4; flagUp.x += flagUp.v * dt / 4; }
@@ -982,7 +974,6 @@ function describe() {
   stage.setAttribute("aria-valuetext", "Refill " + RATES[rate] + " tokens a second; " + allowed + " requests allowed, " + rejected + " rejected");
 }
 
-// idle tour: a few requests, a burst that drains the tube, then a rest that refills it
 const TOUR = [1.2, 1.8, 2.4, 18, 18.6];
 const FLOOD = [5, 12.5];
 const TOUR_LEN = 24;

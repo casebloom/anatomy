@@ -11,7 +11,6 @@ const WIDTH = 600;
 const HEIGHT = 380;
 const AZIMUTH = 58;
 
-// The model: a bucket of CAPACITY tokens, refilled at RATES[i] tokens a second.
 const CAPACITY = 8;
 const RATES = [0.5, 1, 2];
 const RATE_AT = 1;
@@ -25,7 +24,6 @@ const TOKEN_H = 5;
 const RODS = [90, 150, 210, 270].map((deg) => [15 * Math.cos((deg * Math.PI) / 180), 15 * Math.sin((deg * Math.PI) / 180)]);
 const ROD_R = 1.6;
 
-// Refill side: a pedestal with a supply tube and a pusher on top.
 const SX = -112;
 const PED = { x: -150, y: -24, w: 62, d: 48, r: 3 };
 const PZ = 70;
@@ -35,12 +33,10 @@ const SHOUSE = { x: -150, y: -12, w: 22, d: 24, r: 2 };
 const SBLADE_REST = SX - TOKEN_R - 1;
 const STROKE = 27;
 
-// The chute carries one token from the pedestal to the bucket.
 const CHUTE = { x: -88, y: -16, w: 76, d: 32, r: 1 };
 const CHUTE_WALL_X = -84;
 const CHUTE_END = -12 - TOKEN_R;
 
-// The bucket: a coin tube on a dispenser block, capacity 8.
 const BLOCK = { x: -22, y: -22, w: 44, d: 44, r: 3 };
 const BZ = 20;
 const RING_Z = 62;
@@ -54,7 +50,6 @@ const RBLADE_REST = -TOKEN_R - 1;
 const FLAG = { x: -54, y: -13.6, w: 18, d: 1.6, r: 0.4 };
 const FLAG_LIFT = 13;
 
-// The way out: a tray to a bin.
 const TRAY = { x: 22, y: -16, w: 78, d: 32, r: 1.5 };
 const BIN_X = 102;
 const BIN_TO = 136;
@@ -83,11 +78,9 @@ const byDepth = (points) => [...points].sort((a, b) => depth2(a) - depth2(b));
 const path = (points, closed) => k.pathOf(points.map(at), closed);
 const halo = (plan, z, h, blur = 0) => `<path class="iso-halo" d="${k.haloOf(plan, z, h, P)}"${blur ? ` style="filter:blur(${blur}px)"` : ""}/>`;
 
-// A rectangle drawn on a vertical face y = face, as a closed outline.
 const panelY = (face, x0, x1, z0, z1) => path([[x0, face, z0], [x1, face, z0], [x1, face, z1], [x0, face, z1]], true);
 const panelX = (face, y0, y1, z0, z1) => path([[face, y0, z0], [face, y1, z0], [face, y1, z1], [face, y0, z1]], true);
 
-// Half of a flat ring (front: the half facing the viewer), shaded like extrude.
 function ringHalf(cx, cy, rIn, rOut, z, h, front) {
   const view = Math.atan2(sinA, cosA);
   const steps = 48;
@@ -118,8 +111,6 @@ function ringHalf(cx, cy, rIn, rOut, z, h, front) {
   return { fill, top, shades: buckets.map((list) => list.join("")), outline, crease };
 }
 
-// ---------------------------------------------------------------- static art
-
 function plate() {
   const out = [halo(PLATE, -PLATE_H - FOOT_H, PLATE_H)];
   for (const [x, y] of byDepth(k.corners(PLATE, 22))) {
@@ -131,13 +122,11 @@ function plate() {
   const screws = k.corners(PLATE, 10);
   out.push(L(screws.map(([x, y]) => k.ring(x, y, 2.2, 0, P, 16)).join(""), { tone: "lo" }));
   out.push(D(screws.map(([x, y]) => at([x, y, 0])), { size: 0.5 }));
-  // ruler strip along the front edge
   const strip = { x: -76, y: PLATE.y + PLATE.d - 15, w: 214, d: 7, r: 1 };
   out.push(S(k.slabOf(strip, 0, 0.6, P, 3), { tone: "lo", crease: "none" }));
   const ticks = k.topTicks(strip.x + 4, strip.x + strip.w - 4, 4, 5, strip.y + 0.8, 0.6, [2, 3.6], P);
   out.push(L(ticks.minor, { tone: "lo" }), L(ticks.major, { tone: "mid" }));
   out.push(D([at([strip.x + 2, strip.y + 3.5, 0.6]), at([strip.x + strip.w - 2, strip.y + 3.5, 0.6])], { size: 0.45 }));
-  // label plate
   const label = { x: -74, y: 28, w: 30, d: 14, r: 1.2 };
   out.push(S(k.slabOf(label, 0, 0.8, P, 4), { tone: "lo", crease: "none" }));
   out.push(L(k.planOutline(k.insetPlan(label, 1.6), 0.8, P, 4), { tone: "faint" }));
@@ -152,7 +141,6 @@ function pedestal() {
   const out = [halo(k.insetPlan(PED, -2), 0, 1, 3)];
   const seams = L(k.sideSeam(PED, 8, P, 4) + k.sideSeam(PED, PZ - 6, P, 4), { tone: "faint" });
   out.push(S(k.slabOf(PED, 0, PZ, P, 4, 0.8), { tone: "mid", inner: seams }));
-  // access panel and vents on the front face
   const fy = PED.y + PED.d;
   out.push(L(panelY(fy, PED.x + 8, PED.x + 34, 16, 54), { tone: "lo" }));
   out.push(D([[PED.x + 10.5, 18.5], [PED.x + 31.5, 18.5], [PED.x + 10.5, 51.5], [PED.x + 31.5, 51.5]].map(([x, z]) => at([x, fy, z])), { size: 0.45 }));
@@ -160,13 +148,11 @@ function pedestal() {
     const z = 24 + i * 4.4;
     out.push(L(panelY(fy, PED.x + 14, PED.x + 28, z, z + 1.6), { tone: "lo" }));
   }
-  // a cable gland on the front face, low, and a side plate with screws
   out.push(L(k.sideRing([PED.x + 48, fy, 18], 3.2, "y", P, 20), { tone: "lo" }));
   out.push(L(k.sideRing([PED.x + 48, fy, 18], 1.6, "y", P, 16), { tone: "faint" }));
   const sx = PED.x + PED.w;
   out.push(L(panelX(sx, PED.y + 8, PED.y + 40, 20, 50), { tone: "lo" }));
   out.push(D([[PED.y + 10.5, 22.5], [PED.y + 37.5, 22.5], [PED.y + 10.5, 47.5], [PED.y + 37.5, 47.5]].map(([y, z]) => at([sx, y, z])), { size: 0.45 }));
-  // screws on the top corners
   out.push(D([[PED.x + 4, PED.y + 4], [PED.x + PED.w - 4, PED.y + 4], [PED.x + PED.w - 4, PED.y + PED.d - 4], [PED.x + 4, PED.y + PED.d - 4]].map(([x, y]) => at([x, y, PZ])), { size: 0.45 }));
   return out.join("");
 }
@@ -179,7 +165,6 @@ const rodsSplit = () => {
   return { back: byDepth(back), front: byDepth(front) };
 };
 
-// A screen clip that keeps what lies at x >= face: a blade leaving its housing.
 function clipBeyond(id, face) {
   const pts = [];
   for (const x of [face, 600]) for (const y of [-400, 400]) for (const z of [-200, 400]) pts.push(at([x, y, z]));
@@ -202,7 +187,6 @@ function convexHull(points) {
   return [...lower.slice(0, -1), ...upper.slice(0, -1)];
 }
 
-// A pusher blade, built at rest with its tip at x = 0, as thick as a token.
 function blade(length, z) {
   const plan = { x: -length, y: -4, w: length, d: 8, r: 0.8 };
   return (
@@ -221,11 +205,9 @@ function token() {
 
 function supply() {
   const out = [];
-  // pusher housing on the pedestal top
   out.push(S(k.slabOf(SHOUSE, PZ, 12, P, 3, 0.5), { tone: "mid", inner: L(k.sideSeam(SHOUSE, PZ + 3, P, 3), { tone: "faint" }) }));
   out.push(L(k.planOutline(k.insetPlan(SHOUSE, 2.5), PZ + 12, P, 3), { tone: "faint" }));
   out.push(D([[SHOUSE.x + 4.5, -7.5], [SHOUSE.x + 4.5, 7.5], [SHOUSE.x + SHOUSE.w - 4.5, -7.5], [SHOUSE.x + SHOUSE.w - 4.5, 7.5]].map(([x, y]) => at([x, y, PZ + 12])), { size: 0.45 }));
-  // the drive spindle on top of the housing
   out.push(S(k.cylinder(SHOUSE.x + 11, 0, 4, PZ + 12, 3, P, 24), { tone: "mid" }));
   out.push(L(k.knurl(SHOUSE.x + 11, 0, 4, PZ + 12, PZ + 15, 24, P), { tone: "lo" }));
   out.push(L(k.ring(SHOUSE.x + 11, 0, 1.4, PZ + 15, P, 16), { tone: "mid" }));
@@ -235,7 +217,6 @@ function supply() {
   out.push(`<g clip-path="url(#tb-sclip)"><g data-part="sblade" transform="${k.translateAlong(P, [SBLADE_REST, 0, 0])}">${blade(24, PZ)}</g></g>`);
   out.push(`<g data-slot="supply"></g>`);
   for (const rod of front) out.push(rodSvg(rod, SX, PZ, HOPPER_Z));
-  // the hopper: a canister that holds the reserve of tokens
   out.push(S(k.cylinder(SX, 0, 18, HOPPER_Z, 20, P, 64, 0.8), { tone: "mid", crease: "lo", inner: L(k.sideArc(SX, 0, 18, HOPPER_Z + 3, P, 40), { tone: "faint" }) }));
   out.push(L(k.knurl(SX, 0, 18, HOPPER_Z + 15, HOPPER_Z + 20, 72, P, 0.3), { tone: "lo" }));
   out.push(L(k.sideArc(SX, 0, 18, HOPPER_Z + 15, P, 40), { tone: "faint" }));
@@ -256,12 +237,10 @@ function clock() {
   const ticks = k.radialTicks(x, y, CLOCK_R - 1.8, 20, 5, top, [1.2, 2.6], P);
   out.push(L(ticks.minor, { tone: "lo" }), L(ticks.major, { tone: "mid" }));
   out.push(L(k.ring(x, y, 1.4, top, P, 16), { tone: "mid" }));
-  // the crown that sets the rate, beside the clock
   const [kx, ky] = KNOB;
   out.push(S(k.cylinder(kx, ky, 6.4, 0, 1.4, P, 32), { tone: "lo" }));
   out.push(S(k.cylinder(kx, ky, 5, 1.4, 5, P, 32), { tone: "mid" }));
   out.push(L(k.knurl(kx, ky, 5, 1.4, 6.4, 30, P), { tone: "lo" }));
-  // three detents for the three rates
   const dots = RATES.map((_, i) => {
     const a = rateAngle(i);
     return at([kx + Math.sin(a) * 7.6, ky - Math.cos(a) * 7.6, 0]);
@@ -283,7 +262,6 @@ const needleAt = (turn) => {
 
 function requestGate() {
   const out = [];
-  // the reject flag rides on the back face and lifts above the housing
   out.push(
     `<g data-part="flag">${S(k.slabOf(FLAG, 6, 20, P, 2), { tone: "hi", crease: "lo" })}${L(k.segment([FLAG.x + 4, FLAG.y, 6], [FLAG.x + 4, FLAG.y, 26], P) + k.segment([FLAG.x + FLAG.w - 4, FLAG.y, 6], [FLAG.x + FLAG.w - 4, FLAG.y, 26], P), { tone: "faint" })}</g>`,
   );
@@ -324,13 +302,11 @@ function bucket() {
   out.push(halo(k.insetPlan(BLOCK, -2), 0, 1, 3));
   const seams = L(k.sideSeam(BLOCK, 6, P, 4), { tone: "faint" });
   out.push(S(k.slabOf(BLOCK, 0, BZ, P, 4, 0.8), { tone: "mid", inner: seams }));
-  // the slot the token leaves by, on the +x face, and the entry slot on the -x side
   out.push(L(panelX(BLOCK.x + BLOCK.w, -TOKEN_R - 1, TOKEN_R + 1, BZ - 2.2, BZ - 0.6), { tone: "lo" }));
   const fy = BLOCK.y + BLOCK.d;
   out.push(L(panelY(fy, BLOCK.x + 8, BLOCK.x + BLOCK.w - 8, 9, 13), { tone: "lo" }));
   out.push(D([[BLOCK.x + 5, 11], [BLOCK.x + BLOCK.w - 5, 11]].map(([x, z]) => at([x, fy, z])), { size: 0.4 }));
   out.push(D([[BLOCK.x + 4, BLOCK.y + 4], [BLOCK.x + BLOCK.w - 4, BLOCK.y + 4], [BLOCK.x + BLOCK.w - 4, BLOCK.y + BLOCK.d - 4], [BLOCK.x + 4, BLOCK.y + BLOCK.d - 4]].map(([x, y]) => at([x, y, BZ])), { size: 0.45 }));
-  // the floor seat the stack stands on
   out.push(L(k.ring(0, 0, TOKEN_R + 0.8, BZ, P, 48), { tone: "faint" }));
   return out.join("");
 }
@@ -482,17 +458,16 @@ const place = (t) => {
   if (t.alpha < 1) t.el.setAttribute("opacity", Math.max(0, t.alpha).toFixed(3));
 };
 
-// state
 let rate = DATA.RATE_AT;
 const supplyStack = Array.from({ length: SUPPLY_LEVELS }, (_, i) => make(SX, 0, PZ + TOKEN_H * i, "supply"));
 const stack = Array.from({ length: 5 }, (_, i) => make(0, 0, BZ + TOKEN_H * i, "stack"));
 let ready = make(CHUTE_END, 0, PZ, "chute");
-let kicked = null;      // a token on its way from the supply to the chute end
-const falling = [];     // tokens dropping into the tube
-const leaving = [];     // tokens pushed out by a request
-let phase = 0.25;       // clock: fraction of the way to the next token
-let sStroke = null;     // supply pusher stroke age
-let rStroke = null;     // request pusher stroke { age, token }
+let kicked = null;
+const falling = [];
+const leaving = [];
+let phase = 0.25;
+let sStroke = null;
+let rStroke = null;
 let flagUp = { x: 0, v: 0 }, flagAt = -9;
 let allowed = 0, rejected = 0, last = "";
 let clockT = 0;
@@ -509,7 +484,6 @@ const rTip = (age) => {
 const R_CYCLE = 0.4;
 
 function tick() {
-  // one token every 1/rate seconds, if there is room for it
   const room = stack.length + falling.length < CAPACITY;
   if (room && ready) {
     ready.age = 0; ready.vz = 0;
@@ -539,9 +513,8 @@ function step(dt, calm) {
   const period = 1 / RATES[rate];
   phase += dt / period;
   while (phase >= 1) { phase -= 1; tick(); }
-  const a = calm ? 10 : dt;   // animation time: instant under reduced motion
+  const a = calm ? 10 : dt;
 
-  // supply pusher and the kicked token
   if (sStroke !== null) {
     sStroke += a;
     if (sStroke > 0.4) sStroke = null;
@@ -556,11 +529,9 @@ function step(dt, calm) {
     place(kicked);
     if (u >= 1) { ready = kicked; kicked = null; }
   }
-  // the supply stack drops once the blade is back out from under it
   const sBlocked = sStroke !== null && sOut > 1;
   supplyStack.forEach((t, i) => fall(t, PZ + TOKEN_H * (i + (sBlocked ? 1 : 0)), a));
 
-  // tokens dropping into the tube
   for (let i = falling.length - 1; i >= 0; i--) {
     const t = falling[i];
     t.age += a;
@@ -577,7 +548,6 @@ function step(dt, calm) {
     place(t);
   }
 
-  // the request pusher, and what it pushes
   let rOut = 0;
   if (rStroke) {
     rStroke.age += a;
@@ -601,10 +571,8 @@ function step(dt, calm) {
     place(t);
     if (t.alpha <= 0) { t.el.remove(); leaving.splice(i, 1); }
   }
-  // the stack rests on the blade until it pulls back
   stack.forEach((t, i) => fall(t, BZ + TOKEN_H * i + (rBlocked() ? TOKEN_H : 0), a));
 
-  // the flag
   const up = clockT - flagAt < 0.9 ? 1 : 0;
   if (calm) { flagUp.x = up; flagUp.v = 0; }
   else for (let s = 0; s < 4; s++) { flagUp.v += ((up - flagUp.x) * 260 - flagUp.v * 22) * dt / 4; flagUp.x += flagUp.v * dt / 4; }
@@ -634,7 +602,6 @@ function describe() {
   stage.setAttribute("aria-valuetext", "Refill " + RATES[rate] + " tokens a second; " + allowed + " requests allowed, " + rejected + " rejected");
 }
 
-// idle tour: a few requests, a burst that drains the tube, then a rest that refills it
 const TOUR = [1.2, 1.8, 2.4, 18, 18.6];
 const FLOOD = [5, 12.5];
 const TOUR_LEN = 24;
