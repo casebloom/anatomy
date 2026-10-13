@@ -6,6 +6,7 @@ All notable changes to Anatomy are recorded here. The format follows [Keep a Cha
 
 ### Added
 
+- A token bucket example (`examples/token-bucket/`): a coin dispenser whose refill clock drops tokens into a tube of eight and whose request pusher takes one out, or raises a reject flag when the tube is empty.
 - Antigravity support, alongside Claude Code, OpenCode and Codex. Documented user and project installation paths in the README and CONTRIBUTING, updated SKILL.md compatibility, and added Antigravity to the bug report form.
 
 ### Changed

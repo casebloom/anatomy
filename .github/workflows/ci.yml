@@ -47,6 +47,11 @@ jobs:
           node examples/arcade-cabinet/build.mjs
           node examples/arcade-cabinet/build.mjs --light
 
+      - name: Token bucket
+        run: |
+          node examples/token-bucket/build.mjs
+          node examples/token-bucket/build.mjs --light
+
       - name: Ripple tank
         run: |
           node examples/ripple-tank/build.mjs
